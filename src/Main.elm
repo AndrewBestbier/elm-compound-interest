@@ -1,5 +1,7 @@
 module Main exposing (..)
 
+import FormatNumber exposing (format)
+import FormatNumber.Locales exposing (Locale, usLocale)
 import Html exposing (Html, div, h1, input, label, li, p, table, tbody, td, text, th, thead, tr, ul)
 import Html.Attributes exposing (class, placeholder, src, type_)
 import Html.Events exposing (onInput)
@@ -71,7 +73,7 @@ calculate model age =
         deposits =
             p + pmt * 12 * t
     in
-    { balance = toString calculation, deposits = toString deposits, interest = toString (calculation - deposits), interestPercentage = toString ((calculation - deposits) / calculation * 100) }
+    { balance = formatMoney calculation, deposits = formatMoney deposits, interest = formatMoney (calculation - deposits), interestPercentage = format usLocale ((calculation - deposits) / calculation * 100) }
 
 
 view : Model -> Html Msg
@@ -112,6 +114,10 @@ inputField title msg =
         ]
 
 
+formatMoney value =
+    "£" ++ format usLocale value
+
+
 results model =
     let
         age =
@@ -136,7 +142,7 @@ results model =
                         [ text "Balance" ]
                     ]
                 ]
-            , tbody [] (List.map (\x -> tr [] [ th [] [ text (toString x) ], td [] [ text (calculate model x).deposits ], td [] [ text (calculate model x).interest ], td [] [ text (calculate model x).interestPercentage ], td [] [ text (calculate model x).balance ] ]) range)
+            , tbody [] (List.map (\x -> tr [] [ th [] [ text (toString x) ], td [] [ text (calculate model x).deposits ], td [] [ text (calculate model x).interest ], td [] [ text ((calculate model x).interestPercentage ++ "%") ], td [] [ text (calculate model x).balance ] ]) range)
             ]
         ]
 
