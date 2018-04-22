@@ -1,7 +1,7 @@
 module Main exposing (..)
 
-import Html exposing (Html, div, h1, input, li, text, ul)
-import Html.Attributes exposing (placeholder, src, type_)
+import Html exposing (Html, div, h1, input, label, li, p, text, ul)
+import Html.Attributes exposing (class, placeholder, src, type_)
 import Html.Events exposing (onInput)
 
 
@@ -73,6 +73,34 @@ calculate model age =
 
 view : Model -> Html Msg
 view model =
+    div []
+        [ h1 [ class "title" ] [ text "Compound Interest" ]
+        , inputField "Principle (£)" ChangePrinciple
+        , inputField "Interest Rate (%)" ChangeInterest
+        , inputField "Your Age" ChangeAge
+        , inputField "Monthly Deposit (£)" ChangeDeposit
+        , results model
+        ]
+
+
+inputField title msg =
+    div [ class "field is-horizontal" ]
+        [ div [ class "field-label is-normal" ]
+            [ label [ class "label" ]
+                [ text title ]
+            ]
+        , div [ class "field-body" ]
+            [ div [ class "field" ]
+                [ p [ class "control" ]
+                    [ input [ class "input", placeholder "0", type_ "number", onInput msg ]
+                        []
+                    ]
+                ]
+            ]
+        ]
+
+
+results model =
     let
         age =
             round model.age
@@ -80,14 +108,7 @@ view model =
         range =
             List.range age 65 |> List.filter (\x -> x % 5 == 0)
     in
-    div []
-        [ h1 [] [ text "Compound Interest" ]
-        , input [ placeholder "Principle", onInput ChangePrinciple, type_ "number" ] []
-        , input [ placeholder "Interest Rate", onInput ChangeInterest, type_ "number" ] []
-        , input [ placeholder "Your Age", onInput ChangeAge, type_ "number" ] []
-        , input [ placeholder "Monthly Deposit", onInput ChangeDeposit, type_ "number" ] []
-        , ul [] (List.map (\x -> li [] [ text (("At " ++ toString x) ++ " you will have £" ++ calculate model x) ]) range)
-        ]
+    ul [] (List.map (\x -> li [] [ text (("At " ++ toString x) ++ " you will have £" ++ calculate model x) ]) range)
 
 
 
