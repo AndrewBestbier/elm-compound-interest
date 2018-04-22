@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import Html exposing (Html, div, h1, input, text)
+import Html exposing (Html, div, h1, input, li, text, ul)
 import Html.Attributes exposing (placeholder, src, type_)
 import Html.Events exposing (onInput)
 
@@ -9,12 +9,12 @@ import Html.Events exposing (onInput)
 
 
 type alias Model =
-    { principle : Float, interest : Float, term : Float, deposit : Float }
+    { principle : Float, interest : Float, age : Float, deposit : Float }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { principle = 0, interest = 0, term = 0, deposit = 0 }, Cmd.none )
+    ( { principle = 0, interest = 0, age = 0, deposit = 0 }, Cmd.none )
 
 
 
@@ -24,7 +24,7 @@ init =
 type Msg
     = ChangePrinciple String
     | ChangeInterest String
-    | ChangeTerm String
+    | ChangeAge String
     | ChangeDeposit String
 
 
@@ -37,8 +37,8 @@ update msg model =
         ChangeInterest interest ->
             ( { model | interest = Result.withDefault 0 (String.toFloat interest) }, Cmd.none )
 
-        ChangeTerm term ->
-            ( { model | term = Result.withDefault 0 (String.toFloat term) }, Cmd.none )
+        ChangeAge age ->
+            ( { model | age = Result.withDefault 0 (String.toFloat age) }, Cmd.none )
 
         ChangeDeposit deposit ->
             ( { model | deposit = Result.withDefault 0 (String.toFloat deposit) }, Cmd.none )
@@ -48,7 +48,7 @@ update msg model =
 ---- VIEW ----
 
 
-calculate model =
+calculate model age =
     let
         p =
             model.principle
@@ -60,7 +60,7 @@ calculate model =
             12
 
         t =
-            model.term
+            toFloat age - model.age
 
         pmt =
             model.deposit
@@ -73,17 +73,20 @@ calculate model =
 
 view : Model -> Html Msg
 view model =
+    let
+        age =
+            round model.age
+
+        range =
+            List.range age 65 |> List.filter (\x -> x % 5 == 0)
+    in
     div []
         [ h1 [] [ text "Compound Interest" ]
         , input [ placeholder "Principle", onInput ChangePrinciple, type_ "number" ] []
         , input [ placeholder "Interest Rate", onInput ChangeInterest, type_ "number" ] []
-        , input [ placeholder "Term", onInput ChangeTerm, type_ "number" ] []
+        , input [ placeholder "Your Age", onInput ChangeAge, type_ "number" ] []
         , input [ placeholder "Monthly Deposit", onInput ChangeDeposit, type_ "number" ] []
-        , h1 [] [ text ("Principle: " ++ toString model.principle) ]
-        , h1 [] [ text ("Interest Rate: " ++ toString model.interest) ]
-        , h1 [] [ text ("Term: " ++ toString model.term) ]
-        , h1 [] [ text ("Monthly Deposit: " ++ toString model.deposit) ]
-        , h1 [] [ text ("Final Amount: " ++ calculate model) ]
+        , ul [] (List.map (\x -> li [] [ text (("At " ++ toString x) ++ " you will have £" ++ calculate model x) ]) range)
         ]
 
 
