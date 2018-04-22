@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import Html exposing (Html, div, h1, input, label, li, p, text, ul)
+import Html exposing (Html, div, h1, input, label, li, p, table, tbody, td, text, th, thead, tr, ul)
 import Html.Attributes exposing (class, placeholder, src, type_)
 import Html.Events exposing (onInput)
 
@@ -67,25 +67,37 @@ calculate model age =
 
         calculation =
             (p * (1 + r / n) ^ (n * t)) + (pmt * (((1 + r / n) ^ (n * t) - 1) / (r / n)))
+
+        deposits =
+            p + pmt * 12 * t
     in
-    toString calculation
+    { balance = toString calculation, deposits = toString deposits, interest = toString (calculation - deposits), interestPercentage = toString ((calculation - deposits) / calculation * 100) }
 
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [ class "container" ]
         [ h1 [ class "title" ] [ text "Compound Interest" ]
-        , inputField "Principle (£)" ChangePrinciple
-        , inputField "Interest Rate (%)" ChangeInterest
-        , inputField "Your Age" ChangeAge
-        , inputField "Monthly Deposit (£)" ChangeDeposit
+        , inputs
+        , h1 [ class "title" ] [ text "Results:" ]
         , results model
+        ]
+
+
+inputs =
+    div [ class "columns is-mobile" ]
+        [ div [ class "column is-three-fifths is-offset-one-fifth" ]
+            [ inputField "Principle (£)" ChangePrinciple
+            , inputField "Interest Rate (%)" ChangeInterest
+            , inputField "Your Age" ChangeAge
+            , inputField "Monthly Deposit (£)" ChangeDeposit
+            ]
         ]
 
 
 inputField title msg =
     div [ class "field is-horizontal" ]
-        [ div [ class "field-label is-normal" ]
+        [ div [ class "field-label" ]
             [ label [ class "label" ]
                 [ text title ]
             ]
@@ -108,7 +120,25 @@ results model =
         range =
             List.range age 65 |> List.filter (\x -> x % 5 == 0)
     in
-    ul [] (List.map (\x -> li [] [ text (("At " ++ toString x) ++ " you will have £" ++ calculate model x) ]) range)
+    div []
+        [ table [ class "table is-fullwidth" ]
+            [ thead []
+                [ tr []
+                    [ th []
+                        [ text "Age" ]
+                    , th []
+                        [ text "Total Deposits" ]
+                    , th []
+                        [ text "Total Interest" ]
+                    , th []
+                        [ text "Interest Percentage" ]
+                    , th []
+                        [ text "Balance" ]
+                    ]
+                ]
+            , tbody [] (List.map (\x -> tr [] [ th [] [ text (toString x) ], td [] [ text (calculate model x).deposits ], td [] [ text (calculate model x).interest ], td [] [ text (calculate model x).interestPercentage ], td [] [ text (calculate model x).balance ] ]) range)
+            ]
+        ]
 
 
 
