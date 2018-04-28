@@ -2,8 +2,8 @@ module Main exposing (..)
 
 import FormatNumber exposing (format)
 import FormatNumber.Locales exposing (Locale, usLocale)
-import Html exposing (Html, div, h1, input, label, li, p, table, tbody, td, text, th, thead, tr, ul)
-import Html.Attributes exposing (class, placeholder, src, type_)
+import Html exposing (Html, div, h1, h4, input, label, li, p, table, tbody, td, text, th, thead, tr, ul)
+import Html.Attributes exposing (class, for, id, placeholder, src, type_)
 import Html.Events exposing (onInput)
 
 
@@ -66,6 +66,9 @@ calculate model age =
         r =
             model.interest / 100
 
+        x =
+            model.increase / 100
+
         n =
             12
 
@@ -75,11 +78,11 @@ calculate model age =
         pmt =
             model.deposit
 
-        calculation =
-            (p * (1 + r / n) ^ (n * t)) + (pmt * (((1 + r / n) ^ (n * t) - 1) / (r / n)))
-
         deposits =
             p + pmt * 12 * t
+
+        calculation =
+            p * (1 + r / 12) ^ (n * t) + ((pmt * (1 + r / 12) * (-1 + (1 + r / 12) ^ n) * ((1 + r / 12) ^ (n * t) - (1 + x) ^ t)) / ((r / 12) * (-1 + (1 + r / 12) ^ n - x)))
 
         presentValue =
             calculation / ((1 + model.inflation / 100) ^ t)
@@ -95,40 +98,27 @@ calculate model age =
 view : Model -> Html Msg
 view model =
     div [ class "container" ]
-        [ h1 [ class "title" ] [ text "Compound Interest" ]
+        [ h1 [ class "m-5 text-white display-4" ] [ text "Compound Interest Calculator" ]
         , inputs
-        , h1 [ class "title" ] [ text "Results:" ]
         , results model
         ]
 
 
 inputs =
-    div [ class "columns is-mobile" ]
-        [ div [ class "column is-three-fifths is-offset-one-fifth" ]
-            [ inputField "Principle (£)" ChangePrinciple
-            , inputField "Interest Rate (%)" ChangeInterest
-            , inputField "Your Age" ChangeAge
-            , inputField "Monthly Deposit (£)" ChangeDeposit
-            , inputField "Inflation (%)" ChangeInflation
-            , inputField "Yearly deposit increase (%)" ChangeDepositIncrease
-            ]
+    div [ class "row" ]
+        [ inputField "Principle (£)" ChangePrinciple
+        , inputField "Interest Rate (%)" ChangeInterest
+        , inputField "Your Age" ChangeAge
+        , inputField "Monthly Deposit (£)" ChangeDeposit
+        , inputField "Inflation (%)" ChangeInflation
+        , inputField "Yearly deposit increase (%)" ChangeDepositIncrease
         ]
 
 
 inputField title msg =
-    div [ class "field is-horizontal" ]
-        [ div [ class "field-label" ]
-            [ label [ class "label" ]
-                [ text title ]
-            ]
-        , div [ class "field-body" ]
-            [ div [ class "field" ]
-                [ p [ class "control" ]
-                    [ input [ class "input", placeholder "0", type_ "number", onInput msg ]
-                        []
-                    ]
-                ]
-            ]
+    div [ class "col-md-4 mb-4" ]
+        [ label [ class "text-white" ] [ text title ]
+        , input [ class "form-control", placeholder "0", type_ "number", onInput msg ] []
         ]
 
 
@@ -137,6 +127,17 @@ formatMoney value =
 
 
 results model =
+    if model.interest == 0 then
+        h4 [ class "m-5 text-white" ] [ text "Awaiting input..." ]
+    else
+        div [] [ h1 [ class "m-5 text-white" ] [ text "Results:" ], resultsTable model ]
+
+
+noResults =
+    h4 [ class "m-5 text-white" ] [ text "Awaiting input..." ]
+
+
+resultsTable model =
     let
         age =
             round model.age
@@ -144,38 +145,40 @@ results model =
         range =
             List.range age 75 |> List.filter (\x -> x % 5 == 0)
     in
-    div []
-        [ table [ class "table is-fullwidth" ]
-            [ thead []
-                [ tr []
-                    [ th []
-                        [ text "Age" ]
-                    , th []
-                        [ text "Total Deposits" ]
-                    , th []
-                        [ text "Total Interest" ]
-                    , th []
-                        [ text "Interest Percentage" ]
-                    , th []
-                        [ text "Balance" ]
-                    , th []
-                        [ text "PDV" ]
+    div [ class "card mt-6" ]
+        [ div [ class "table-responsive" ]
+            [ table [ class "table mb-0" ]
+                [ thead []
+                    [ tr []
+                        [ th []
+                            [ text "Age" ]
+                        , th []
+                            [ text "Total Deposits" ]
+                        , th []
+                            [ text "Total Interest" ]
+                        , th []
+                            [ text "Interest Percentage" ]
+                        , th []
+                            [ text "Balance" ]
+                        , th []
+                            [ text "Present day value" ]
+                        ]
                     ]
-                ]
-            , tbody []
-                (List.map
-                    (\x ->
-                        tr []
-                            [ th [] [ text (toString x) ]
-                            , td [] [ text (calculate model x).deposits ]
-                            , td [] [ text (calculate model x).interest ]
-                            , td [] [ text ((calculate model x).interestPercentage ++ "%") ]
-                            , td [] [ text (calculate model x).balance ]
-                            , td [] [ text (calculate model x).presentValue ]
-                            ]
+                , tbody []
+                    (List.map
+                        (\x ->
+                            tr []
+                                [ th [] [ text (toString x) ]
+                                , td [] [ text (calculate model x).deposits ]
+                                , td [] [ text (calculate model x).interest ]
+                                , td [] [ text ((calculate model x).interestPercentage ++ "%") ]
+                                , td [] [ text (calculate model x).balance ]
+                                , td [] [ text (calculate model x).presentValue ]
+                                ]
+                        )
+                        range
                     )
-                    range
-                )
+                ]
             ]
         ]
 
