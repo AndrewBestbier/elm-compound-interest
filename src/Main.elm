@@ -11,12 +11,12 @@ import Html.Events exposing (onInput)
 
 
 type alias Model =
-    { principle : Float, interest : Float, age : Float, deposit : Float }
+    { principle : Float, interest : Float, age : Float, deposit : Float, inflation : Float, increase : Float }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { principle = 0, interest = 0, age = 0, deposit = 0 }, Cmd.none )
+    ( { principle = 0, interest = 0, age = 0, deposit = 0, inflation = 0, increase = 0 }, Cmd.none )
 
 
 
@@ -28,6 +28,8 @@ type Msg
     | ChangeInterest String
     | ChangeAge String
     | ChangeDeposit String
+    | ChangeInflation String
+    | ChangeDepositIncrease String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -44,6 +46,12 @@ update msg model =
 
         ChangeDeposit deposit ->
             ( { model | deposit = Result.withDefault 0 (String.toFloat deposit) }, Cmd.none )
+
+        ChangeInflation inflation ->
+            ( { model | inflation = Result.withDefault 0 (String.toFloat inflation) }, Cmd.none )
+
+        ChangeDepositIncrease increase ->
+            ( { model | increase = Result.withDefault 0 (String.toFloat increase) }, Cmd.none )
 
 
 
@@ -72,8 +80,16 @@ calculate model age =
 
         deposits =
             p + pmt * 12 * t
+
+        presentValue =
+            calculation / ((1 + model.inflation / 100) ^ t)
     in
-    { balance = formatMoney calculation, deposits = formatMoney deposits, interest = formatMoney (calculation - deposits), interestPercentage = format usLocale ((calculation - deposits) / calculation * 100) }
+    { balance = formatMoney calculation
+    , deposits = formatMoney deposits
+    , interest = formatMoney (calculation - deposits)
+    , interestPercentage = format usLocale ((calculation - deposits) / calculation * 100)
+    , presentValue = formatMoney presentValue
+    }
 
 
 view : Model -> Html Msg
@@ -93,6 +109,8 @@ inputs =
             , inputField "Interest Rate (%)" ChangeInterest
             , inputField "Your Age" ChangeAge
             , inputField "Monthly Deposit (£)" ChangeDeposit
+            , inputField "Inflation (%)" ChangeInflation
+            , inputField "Yearly deposit increase (%)" ChangeDepositIncrease
             ]
         ]
 
@@ -124,7 +142,7 @@ results model =
             round model.age
 
         range =
-            List.range age 65 |> List.filter (\x -> x % 5 == 0)
+            List.range age 75 |> List.filter (\x -> x % 5 == 0)
     in
     div []
         [ table [ class "table is-fullwidth" ]
@@ -140,9 +158,24 @@ results model =
                         [ text "Interest Percentage" ]
                     , th []
                         [ text "Balance" ]
+                    , th []
+                        [ text "PDV" ]
                     ]
                 ]
-            , tbody [] (List.map (\x -> tr [] [ th [] [ text (toString x) ], td [] [ text (calculate model x).deposits ], td [] [ text (calculate model x).interest ], td [] [ text ((calculate model x).interestPercentage ++ "%") ], td [] [ text (calculate model x).balance ] ]) range)
+            , tbody []
+                (List.map
+                    (\x ->
+                        tr []
+                            [ th [] [ text (toString x) ]
+                            , td [] [ text (calculate model x).deposits ]
+                            , td [] [ text (calculate model x).interest ]
+                            , td [] [ text ((calculate model x).interestPercentage ++ "%") ]
+                            , td [] [ text (calculate model x).balance ]
+                            , td [] [ text (calculate model x).presentValue ]
+                            ]
+                    )
+                    range
+                )
             ]
         ]
 
