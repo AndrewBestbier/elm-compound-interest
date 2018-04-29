@@ -6,11 +6,11 @@ body {
   background: linear-gradient(45deg, #6078ff, #8660fe);
 }
 
-header-container {
-  margin: 50;
+html,
+body {
+  height: 100%;
 }
 
-img {
-  margin: 20px 0;
-  max-width: 200px;
+header-container {
+  margin: 50;
 }

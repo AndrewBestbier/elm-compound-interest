@@ -98,7 +98,7 @@ calculate model age =
 view : Model -> Html Msg
 view model =
     div [ class "container" ]
-        [ h1 [ class "m-5 text-white display-4" ] [ text "Compound Interest Calculator" ]
+        [ h1 [ class "p-5 text-white display-4" ] [ text "Compound Interest Calculator" ]
         , inputs
         , results model
         ]
@@ -106,19 +106,19 @@ view model =
 
 inputs =
     div [ class "row" ]
-        [ inputField "Principle (£)" ChangePrinciple
-        , inputField "Interest Rate (%)" ChangeInterest
-        , inputField "Your Age" ChangeAge
-        , inputField "Monthly Deposit (£)" ChangeDeposit
-        , inputField "Inflation (%)" ChangeInflation
-        , inputField "Yearly deposit increase (%)" ChangeDepositIncrease
+        [ inputField "Principle (£)" ChangePrinciple "0"
+        , inputField "Interest Rate (%)" ChangeInterest "If you are unsure try 7%"
+        , inputField "Your Age" ChangeAge "0"
+        , inputField "Monthly Deposit (£)" ChangeDeposit "0"
+        , inputField "Inflation (%)" ChangeInflation "If you are unsure try 2.5%"
+        , inputField "Yearly deposit increase (%)" ChangeDepositIncrease "0"
         ]
 
 
-inputField title msg =
+inputField title msg placeholderText =
     div [ class "col-md-4 mb-4" ]
         [ label [ class "text-white" ] [ text title ]
-        , input [ class "form-control", placeholder "0", type_ "number", onInput msg ] []
+        , input [ class "form-control", placeholder placeholderText, type_ "number", onInput msg ] []
         ]
 
 
@@ -143,7 +143,7 @@ resultsTable model =
             round model.age
 
         range =
-            List.range age 75 |> List.filter (\x -> x % 5 == 0)
+            age :: (List.range (age + 1) 75 |> List.filter (\x -> x % 5 == 0))
     in
     div [ class "card mt-6" ]
         [ div [ class "table-responsive" ]
@@ -159,21 +159,25 @@ resultsTable model =
                         , th []
                             [ text "Interest Percentage" ]
                         , th []
-                            [ text "Balance" ]
-                        , th []
                             [ text "Present day value" ]
+                        , th []
+                            [ text "Balance" ]
                         ]
                     ]
                 , tbody []
                     (List.map
                         (\x ->
+                            let
+                                calculation =
+                                    calculate model x
+                            in
                             tr []
                                 [ th [] [ text (toString x) ]
-                                , td [] [ text (calculate model x).deposits ]
-                                , td [] [ text (calculate model x).interest ]
-                                , td [] [ text ((calculate model x).interestPercentage ++ "%") ]
-                                , td [] [ text (calculate model x).balance ]
-                                , td [] [ text (calculate model x).presentValue ]
+                                , td [] [ text calculation.deposits ]
+                                , td [] [ text calculation.interest ]
+                                , td [] [ text (calculation.interestPercentage ++ "%") ]
+                                , td [] [ text calculation.presentValue ]
+                                , td [ class "font-weight-bold" ] [ text calculation.balance ]
                                 ]
                         )
                         range
