@@ -106,7 +106,7 @@ view model =
 
 inputs =
     div [ class "row" ]
-        [ inputField "Principle (£)" ChangePrinciple "0"
+        [ inputField "Starting Value (£)" ChangePrinciple "0"
         , inputField "Interest Rate (%)" ChangeInterest "If you are unsure try 7%"
         , inputField "Your Age" ChangeAge "0"
         , inputField "Monthly Deposit (£)" ChangeDeposit "0"
